@@ -19,8 +19,10 @@ function loadChartModule() {
   return chartModulePromise;
 }
 
+const isBrowser = typeof window !== 'undefined';
+
 async function updateChart() {
-  if (!canvas) return;
+  if (!isBrowser || !canvas) return;
 
   const chartData = buildHistogramChartData(props.bins);
   tooltips = chartData.tooltips;
@@ -124,7 +126,9 @@ onDestroy(() => {
 });
 
 $effect(() => {
-  void updateChart();
+  if (isBrowser) {
+    void updateChart();
+  }
 });
 </script>
 
