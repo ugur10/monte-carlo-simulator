@@ -16,7 +16,12 @@ import {
   sortNumbers,
 } from './utils';
 
+/**
+ * Runs a Monte Carlo simulation across the provided deals and returns
+ * the full analytical output (samples, histogram, confidence intervals, impacts).
+ */
 export function simulatePipeline(deals: Deal[], config?: SimulationConfig): SimulationResult {
+  // Normalize deal probabilities to guard against out-of-range values before iterating.
   const sanitizedDeals = deals.map((deal) => ({
     ...deal,
     winProbability: clampProbability(deal.winProbability),
@@ -32,6 +37,8 @@ export function simulatePipeline(deals: Deal[], config?: SimulationConfig): Simu
   const dealWinCounts = sanitizedDeals.map(() => 0);
   const dealWinningIterations = sanitizedDeals.map(() => [] as number[]);
 
+  // Run the Bernoulli trial for each deal per iteration, accumulating revenue totals
+  // and tracking which iterations each deal contributed to.
   for (let iteration = 0; iteration < iterations; iteration += 1) {
     let total = 0;
 
@@ -95,6 +102,10 @@ interface BuildDealImpactsOptions {
   sortedSamples: number[];
 }
 
+/**
+ * Estimates how each deal contributes to tail risk and expected value.
+ * Sensitivity counts iterations where a deal pushed revenue over the 80th percentile threshold.
+ */
 function buildDealImpacts({
   deals,
   revenueSamples,

@@ -4,6 +4,7 @@ import { POST } from './+server';
 
 type PostArgs = Parameters<typeof POST>[0];
 
+// Helper to invoke the SvelteKit handler inside Vitest without spinning up a server.
 const invokePost = (request: Request) => POST({ request } as PostArgs);
 
 interface ApiSuccessBody {
@@ -19,6 +20,7 @@ interface ApiSuccessBody {
 const API_URL = 'http://localhost/api/simulate';
 
 describe('POST /api/simulate', () => {
+  // Baseline payload mirrored across tests for deterministic assertions.
   const basePayload = {
     deals: [
       {

@@ -16,6 +16,10 @@ export const DEFAULT_CONFIDENCE_LEVELS: readonly number[] = [0.5, 0.8, 0.95];
 export const DEFAULT_HISTOGRAM_BIN_COUNT = 40;
 export const SIMULATION_VERSION = '0.1.0-dev';
 
+/**
+ * Creates a reproducible pseudo-random number generator using a fast integer hash.
+ * Each invocation advances the internal state and yields a value in [0, 1).
+ */
 export function createSeededRng(seed: number = Date.now()): RandomGenerator {
   let value = seed >>> 0;
   return () => {
@@ -31,6 +35,10 @@ export function normalizeIterations(config?: SimulationConfig): number {
   return clampInteger(iterations, 100, 200_000);
 }
 
+/**
+ * Generates a sorted list of unique confidence levels, falling back to defaults
+ * when supplied values are missing or invalid.
+ */
 export function normalizeConfidenceLevels(levels?: number[]): number[] {
   if (!levels || levels.length === 0) {
     return [...DEFAULT_CONFIDENCE_LEVELS];
@@ -48,6 +56,9 @@ export function normalizeConfidenceLevels(levels?: number[]): number[] {
   return normalized.length ? normalized : [...DEFAULT_CONFIDENCE_LEVELS];
 }
 
+/**
+ * Ensures the histogram bin count stays within a reasonable range for rendering.
+ */
 export function normalizeHistogramBinCount(binCount?: number): number {
   if (typeof binCount !== 'number' || !Number.isFinite(binCount)) {
     return DEFAULT_HISTOGRAM_BIN_COUNT;
@@ -56,6 +67,9 @@ export function normalizeHistogramBinCount(binCount?: number): number {
   return clampInteger(binCount, 5, 200);
 }
 
+/**
+ * Computes the percentile value for an already sorted array using linear interpolation.
+ */
 export function calculatePercentile(sortedValues: readonly number[], percentile: number): number {
   if (sortedValues.length === 0) {
     return 0;
@@ -78,6 +92,9 @@ export function calculatePercentile(sortedValues: readonly number[], percentile:
   return lower + (upper - lower) * weight;
 }
 
+/**
+ * Produces standard descriptive statistics for a list of revenue outcomes.
+ */
 export function computeSummaryStatistics(samples: readonly number[]): SimulationSummary {
   if (!samples.length) {
     return {
@@ -109,6 +126,9 @@ export function computeSummaryStatistics(samples: readonly number[]): Simulation
   };
 }
 
+/**
+ * Converts raw samples into symmetric confidence intervals for the requested levels.
+ */
 export function buildConfidenceIntervals(
   samples: readonly number[],
   levels: readonly number[],
@@ -132,6 +152,9 @@ export function buildConfidenceIntervals(
   });
 }
 
+/**
+ * Builds an equi-width histogram, reporting both counts and probability mass per bucket.
+ */
 export function computeHistogram(samples: readonly number[], binCount: number): HistogramBin[] {
   if (!samples.length) {
     return [];
@@ -184,6 +207,9 @@ export function computeHistogram(samples: readonly number[], binCount: number): 
   return bins;
 }
 
+/**
+ * Calculates the probability of meeting or exceeding each revenue target.
+ */
 export function computeTargetProbabilities(
   sortedSamples: readonly number[],
   targets?: number[],
@@ -206,10 +232,16 @@ export function computeTargetProbabilities(
   });
 }
 
+/**
+ * Returns a sorted copy of the provided values without mutating the input array.
+ */
 export function sortNumbers(values: readonly number[]): number[] {
   return [...values].sort((a, b) => a - b);
 }
 
+/**
+ * Clamps a probability value to [0, 1], treating non-finite inputs as zero.
+ */
 export function clampProbability(value: number): number {
   if (!Number.isFinite(value)) {
     return 0;
@@ -223,6 +255,9 @@ export function clampProbability(value: number): number {
   return value;
 }
 
+/**
+ * Clamps an integer to the provided bounds, replacing non-finite inputs with the minimum.
+ */
 export function clampInteger(value: number, min: number, max: number): number {
   if (!Number.isFinite(value)) {
     return min;
@@ -230,6 +265,9 @@ export function clampInteger(value: number, min: number, max: number): number {
   return Math.floor(Math.min(Math.max(value, min), max));
 }
 
+/**
+ * Produces a stable, unsigned seed value from user input or the current timestamp.
+ */
 export function normalizeSeed(seed?: number): number {
   if (typeof seed === 'number' && Number.isFinite(seed) && seed >= 0) {
     return Math.floor(seed) >>> 0;
@@ -237,6 +275,9 @@ export function normalizeSeed(seed?: number): number {
   return Math.floor(Date.now() % UINT32_MAX);
 }
 
+/**
+ * Builds consistent metadata for each simulation run, supporting overrides for testing.
+ */
 export function createSimulationMetadata(
   config: SimulationConfig | undefined,
   overrides: Partial<SimulationMetadata> = {},
@@ -251,6 +292,9 @@ export function createSimulationMetadata(
   };
 }
 
+/**
+ * Generates a unique identifier for a simulation run, using `crypto.randomUUID` when available.
+ */
 export function generateRunId(prefix = 'simulation'): string {
   const cryptoRef = globalThis.crypto;
   if (cryptoRef && typeof cryptoRef.randomUUID === 'function') {

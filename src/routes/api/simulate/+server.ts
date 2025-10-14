@@ -4,9 +4,11 @@ import { z } from 'zod';
 import { simulatePipeline } from '$lib/simulator';
 import type { Deal } from '$lib/types';
 
+// Permissive ISO-8601 matcher that accepts both date-only and date-time inputs.
 const ISO_DATE_REGEX =
   /^\d{4}-\d{2}-\d{2}(?:[T ]\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:Z|[-+]\d{2}:\d{2})?)?$/;
 
+// Runtime validation for each deal submitted to the simulation API.
 const dealInputSchema = z.object({
   id: z
     .string()
@@ -51,6 +53,7 @@ const dealInputSchema = z.object({
   notes: z.string().trim().max(1_000, 'notes must be 1,000 characters or fewer').optional(),
 });
 
+// Optional simulation configuration overrides with conservative bounds.
 const simulationConfigSchema = z
   .object({
     iterations: z
@@ -101,6 +104,7 @@ const requestSchema = z
 type ParsedPayload = z.infer<typeof requestSchema>;
 
 export const POST: RequestHandler = async ({ request }) => {
+  // Content negotiation: the endpoint only accepts JSON payloads.
   if (!isJsonRequest(request)) {
     return json({ message: 'Content-Type must be application/json' }, { status: 415 });
   }
@@ -114,6 +118,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
   const parseResult = requestSchema.safeParse(rawPayload);
   if (!parseResult.success) {
+    // Surface validation errors with enough detail for the client to correct payload issues.
     return json(
       {
         message: 'Invalid simulation payload',
@@ -126,6 +131,7 @@ export const POST: RequestHandler = async ({ request }) => {
   const payload = parseResult.data;
   const deals = normaliseDeals(payload);
 
+  // Execute the Monte Carlo run and track wall-clock time for transparency.
   const simulationStart = performance.now();
   const result = simulatePipeline(deals, payload.config);
   const simulationDuration = performance.now() - simulationStart;
@@ -143,6 +149,9 @@ export const POST: RequestHandler = async ({ request }) => {
   );
 };
 
+/**
+ * Ensures optional string fields are trimmed and that each deal has a unique identifier.
+ */
 function normaliseDeals(payload: ParsedPayload): Deal[] {
   return payload.deals.map((deal, index) => {
     const trimmed = (value?: string) => value?.trim() || undefined;
@@ -159,6 +168,9 @@ function normaliseDeals(payload: ParsedPayload): Deal[] {
   });
 }
 
+/**
+ * Flattens Zod issues into a client-friendly format.
+ */
 function formatZodIssues(issues: z.ZodIssue[]) {
   return issues.map((issue) => ({
     path: issue.path.join('.') || issue.path.toString(),
@@ -167,7 +179,10 @@ function formatZodIssues(issues: z.ZodIssue[]) {
   }));
 }
 
+/**
+ * Checks whether the request advertises JSON content.
+ */
 function isJsonRequest(request: Request): boolean {
   const contentType = request.headers.get('content-type');
-  return Boolean(contentType && contentType.toLowerCase().includes('application/json'));
+  return contentType?.toLowerCase().includes('application/json') ?? false;
 }

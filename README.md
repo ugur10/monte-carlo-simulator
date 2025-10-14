@@ -1,64 +1,119 @@
-# Monte Carlo Sales Pipeline Simulator — Delivery Plan
+# Monte Carlo Sales Pipeline Simulator
 
-## Project Intent
-Build a production-grade Monte Carlo simulation tool for sales pipeline forecasting using SvelteKit 5, Bun, TypeScript, Tailwind, and Chart.js. The final experience should demonstrate deep technical rigor (fast, accurate simulations with strong validation) and clear product thinking (polished UX, actionable insights, scenario management, export support).
+## Overview
+Monte Carlo Sales Pipeline Simulator forecasts revenue outcomes for B2B deal funnels. The project combines a deterministic, unit-tested simulation engine with a type-safe API surface and a Tailwind-driven SvelteKit shell that will evolve into a production-ready UI. The short-term objective is to build a thin vertical slice – from data model through API response – before layering on interactivity, persistence, and visualization.
 
-## Delivery Principles
-- **Incremental Value:** Deliver functionality in thin vertical slices, validating lint/tests at every step.
-- **Type Safety Everywhere:** Strict TypeScript plus runtime validation (Zod) for robust inputs/outputs.
-- **Performance First:** 10k simulation runs in under one second, both in isolation and via the API.
-- **Polished UX:** Minimalist, professional visuals; responsive layouts; smooth interactions.
-- **Continuous Verification:** `bun test`, `bun run lint`, and manual spot checks before each commit.
+## Current Capabilities (Phase 1–3 Complete)
+- **Tooling & DX**
+  - SvelteKit 5 on Bun with strict TypeScript, Vitest, and Biome formatting/linting.
+  - Tailwind CSS v4 baseline with a modern, “startup-ready” landing placeholder.
+- **Simulation Engine**
+  - Pure TypeScript Monte Carlo engine (`src/lib/simulator.ts`) producing revenue samples, histograms, confidence intervals, target probabilities, and per-deal sensitivity metrics in <1 s for 10k iterations.
+  - Deterministic seeded RNG utilities, percentile helpers, and config normalization with comprehensive unit tests.
+- **API Surface**
+  - `/api/simulate` POST endpoint with Zod validation, structured JSON errors, and execution timing metadata.
+  - Integration tests covering happy path, validation failures, auto-generated IDs, and deal impact toggles.
 
-## Phase Roadmap & Milestones
+## Tech Stack
+- **Runtime & Framework**: Bun • SvelteKit 5
+- **Language & Types**: TypeScript (strict)
+- **Styling**: Tailwind CSS v4 (`@tailwindcss/vite`)
+- **Quality**: Biome (lint/format), Vitest + jsdom
+- **Validation**: Zod
 
-### Phase 1 – Foundation & Tooling
-1. Scaffold SvelteKit 5 project via `bunx sv create` with TypeScript strict mode and Bun install.
-2. Configure Tailwind, Biome, Vitest, and project scripts (test/lint/format) for consistent quality.
-3. Validate Context7 references for SvelteKit 5, Bun, Tailwind, Chart.js, Vitest best practices.
+## Quick Start
+```bash
+bun install
+bun run dev        # http://localhost:5173
+```
 
-### Phase 2 – Simulation Domain
-4. Define domain models and DTOs in `src/lib/types.ts` with exhaustive typings.
-5. Implement deterministic helpers in `src/lib/utils.ts` (seedable RNG, math helpers).
-6. Build Monte Carlo engine (`src/lib/simulator.ts`) covering histogram data, confidence bands, deal impact metrics.
-7. Author Vitest suites ensuring statistical expectations, edge cases, and sub-second performance.
+If ports 5173/5174 are occupied:
+```bash
+lsof -ti:5173 | xargs kill
+lsof -ti:5174 | xargs kill
+```
 
-### Phase 3 – API Surface
-8. Implement `/src/routes/api/simulate/+server.ts` with Zod validation, structured errors, and performance logging.
-9. Add endpoint tests covering valid payloads, validation failures, and regression guardrails.
+## Project Scripts
+| Command | Description |
+| --- | --- |
+| `bun run dev` | Start the SvelteKit dev server |
+| `bun run build` | Production build |
+| `bun run preview` | Preview production bundle |
+| `bun run lint` | Biome lint + format checks |
+| `bun run format` | Apply Biome formatting |
+| `bun run check` | `svelte-check` type/diagnostic pass |
+| `bun run test` | Vitest suite with coverage |
+| `bun run coverage` | Coverage report only |
 
-### Phase 4 – Core UI Components
-10. Construct state management + layout in `src/routes/+page.svelte` and `+page.ts`.
-11. Build `DealInput`, `DealList` components with validation, optimistic UX, and accessibility.
-12. Develop `SimulationResults`, `DistributionChart`, `StatsPanel` components (Chart.js histograms, confidence metrics).
+## API Reference
+### `POST /api/simulate`
+Runs a Monte Carlo simulation for an array of deal inputs.
 
-### Phase 5 – Integration & UX Depth
-13. Wire front-end to API; add loading, error, and retry flows.
-14. Implement scenario persistence (localStorage) and export (JSON/CSV) utilities.
-15. Layer in transitions, responsive adjustments, and optional dark mode toggle.
+**Request Body**
+```json
+{
+  "deals": [
+    {
+      "id": "pipeline-1",
+      "name": "Enterprise Expansion",
+      "amount": 120000,
+      "winProbability": 0.55,
+      "expectedCloseDate": "2025-12-15",
+      "stage": "Negotiation"
+    }
+  ],
+  "config": {
+    "iterations": 5000,
+    "seed": 1337,
+    "histogramBinCount": 40,
+    "revenueTargets": [100000, 200000],
+    "includeDealImpacts": true
+  }
+}
+```
 
-### Phase 6 – Documentation & Final QA
-16. Compose comprehensive README (problem, setup, Monte Carlo overview, usage, architecture).
-17. Capture screenshots/demo snippets.
-18. Final verification: lint, tests, typecheck, performance benchmark, manual UI sweep.
+**Response (`200 OK`)**
+- `result.revenueSamples`: raw iteration totals.
+- `result.histogram`: bin counts with probability mass.
+- `result.confidenceIntervals`: 50 %, 80 %, 95 % by default.
+- `result.dealImpacts`: expected value, variance contribution, tail sensitivity per deal.
+- `result.metadata`: iterations, seed, run ID, generated timestamp, duration.
 
-## Success Metrics
-- ✅ All lint/tests/type checks pass on CI scripts.
-- ✅ 10k simulations complete in <1s on baseline hardware.
-- ✅ UI responsive from 320px to >1440px widths.
-- ✅ Users can create, save, load, simulate, and export scenarios without runtime errors.
+Headers include `x-simulation-duration-ms` for quick performance checks.
 
-## Open Questions / Research TODO
-- Verify latest Tailwind + SvelteKit integration guidance via Context7 before Phase 1 scaffolding.
-- Confirm recommended Chart.js Svelte wrapper (if any) or best approach for SSR-safe import.
-- Determine optimal binning strategy for histogram (Sturges vs. Freedman–Diaconis) to balance clarity/performance.
+## Architecture Snapshot
+```
+src/
+ ├─ lib/
+ │   ├─ simulator.ts          # Monte Carlo engine
+ │   ├─ utils.ts              # RNG, normalization, math helpers
+ │   ├─ types.ts              # Shared domain contracts
+ │   └─ simulator.test.ts     # Unit tests (determinism, metrics)
+ ├─ routes/
+ │   ├─ +page.svelte          # Tailwind landing shell
+ │   └─ api/simulate/
+ │       ├─ +server.ts        # Zod-validated API endpoint
+ │       └─ simulate.test.ts  # API integration tests
+ └─ setupTests.ts             # Vitest global setup (testing-library DOM matchers)
+```
 
-## Verification Checklist (Rolling)
+## Roadmap (Active & Upcoming Phases)
+1. **Completed** – SvelteKit scaffold, Tailwind baseline, Bun tooling.
+2. **Completed** – Monte Carlo engine with strict types and high-level tests.
+3. **Completed** – `/api/simulate` endpoint with validation/time tracking.
+4. **In Progress** – Deal input form, list management, results UI components (Chart.js).
+5. Scenario persistence, export flows, polished UX/dark mode.
+6. Documentation + visual polish and final QA pass.
+
+A rolling verification checklist stays active:
 - `bun run lint`
-- `bun test`
-- `bun run check` (TypeScript/Svelte check)
-- Manual performance timing for 10k iterations
-- Visual regression spot check (light/dark, mobile/desktop)
+- `bun run test`
+- `bun run check`
+- Manual timing for 10k iterations
+- Visual inspection on mobile/desktop as UI matures
 
-## Next Step
-Proceed with Phase 1 Milestone 1: scaffold the SvelteKit project with Bun, keeping the plan above as the guiding structure. Each milestone will conclude with verification and a descriptive commit highlighting **what** changed and **why**.
+## Contributing / Next Steps
+- **UI Buildout**: Deal CRUD form, results dashboard, Chart.js integration.
+- **Scenario Persistence**: LocalStorage-backed scenarios, export (JSON/CSV).
+- **Design Polish**: Responsive layouts, micro-interactions, optional dark mode.
+- **Documentation**: Replace this plan-centric README with production onboarding (install, usage, screenshots) once UI stabilizes.
