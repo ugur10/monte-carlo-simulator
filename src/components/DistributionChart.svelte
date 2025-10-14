@@ -1,18 +1,25 @@
 <script lang="ts">
-import { Chart, type ChartConfiguration, type TooltipItem } from 'chart.js/auto';
+import type { ChartConfiguration, TooltipItem } from 'chart.js';
 import { onDestroy, onMount } from 'svelte';
-
 import { buildHistogramChartData } from '$lib/charts/histogram';
 import type { HistogramBin } from '$lib/types';
 
 const props = $props<{ bins: HistogramBin[] }>();
 
 let canvas = $state<HTMLCanvasElement | null>(null);
-let chart = $state<Chart<'bar'> | null>(null);
+let chart: import('chart.js').Chart<'bar'> | null = null;
+let chartModulePromise: Promise<typeof import('chart.js/auto')> | null = null;
 
 let tooltips: string[] = [];
 
-function updateChart() {
+function loadChartModule() {
+  if (!chartModulePromise) {
+    chartModulePromise = import('chart.js/auto');
+  }
+  return chartModulePromise;
+}
+
+async function updateChart() {
   if (!canvas) return;
 
   const chartData = buildHistogramChartData(props.bins);
@@ -23,6 +30,8 @@ function updateChart() {
     chart = null;
     return;
   }
+
+  const { Chart } = await loadChartModule();
 
   const configuration: ChartConfiguration<'bar'> = {
     type: 'bar',
@@ -106,7 +115,7 @@ function updateChart() {
 }
 
 onMount(() => {
-  updateChart();
+  void updateChart();
 });
 
 onDestroy(() => {
@@ -115,7 +124,7 @@ onDestroy(() => {
 });
 
 $effect(() => {
-  updateChart();
+  void updateChart();
 });
 </script>
 
