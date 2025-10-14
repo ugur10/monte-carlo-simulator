@@ -1,13 +1,58 @@
 <script lang="ts">
-  import DealInput from '../components/DealInput.svelte';
+  import DealForm from '../components/DealForm.svelte';
   import DealList from '../components/DealList.svelte';
   import DistributionChart from '../components/DistributionChart.svelte';
   import SimulationResults from '../components/SimulationResults.svelte';
   import StatsPanel from '../components/StatsPanel.svelte';
-  import { createDealDraft, createSimulationStore } from '$lib/stores/simulation';
+  import {
+    createDealDraft,
+    createSimulationStore,
+    removeDeal,
+    resetStatus,
+    upsertDeal,
+  } from '$lib/stores/simulation';
+  import type { DealInput } from '$lib/types';
 
   const simulation = createSimulationStore();
-  const placeholderDeal = createDealDraft();
+
+  let draft = createDealDraft();
+  let editingIndex: number | undefined;
+
+  function handleCreate() {
+    editingIndex = undefined;
+    draft = createDealDraft();
+    simulation.update((state) => resetStatus(state));
+  }
+
+  function handleSave(event: CustomEvent<{ deal: DealInput; index?: number }>) {
+    const { deal, index } = event.detail;
+    const existingId = typeof index === 'number' ? $simulation.deals[index]?.id : undefined;
+    const payload: DealInput = existingId ? { ...deal, id: existingId } : deal;
+
+    simulation.update((state) => upsertDeal(state, payload, index));
+    handleCreate();
+  }
+
+  function handleEdit(index: number) {
+    const deal = $simulation.deals[index];
+    if (!deal) return;
+    editingIndex = index;
+    draft = { ...deal };
+    simulation.update((state) => resetStatus(state));
+  }
+
+  function handleDelete(index: number) {
+    simulation.update((state) => removeDeal(state, index));
+    if (editingIndex === index) {
+      handleCreate();
+    }
+  }
+
+function handleCancel() {
+  handleCreate();
+}
+
+handleCreate();
 </script>
 
 <svelte:head>
@@ -31,10 +76,28 @@
     </p>
   </section>
 
-  <section class="grid gap-6 lg:grid-cols-3">
+<section class="grid gap-6 lg:grid-cols-3">
     <div class="space-y-6 lg:col-span-2">
-      <DealInput value={placeholderDeal} />
-      <DealList deals={$simulation.deals} />
+      <section class="rounded-[var(--radius-card)] border border-white/10 bg-surface/70 p-6 shadow-[var(--shadow-card)] backdrop-blur">
+        <header class="mb-5 flex items-center justify-between">
+          <div>
+            <h2 class="text-sm font-semibold uppercase tracking-widest text-slate-300">
+              {typeof editingIndex === 'number' ? 'Edit Deal' : 'Add Deal'}
+            </h2>
+            <p class="text-xs text-slate-500">Capture the key inputs needed for Monte Carlo sampling.</p>
+          </div>
+          <button
+            type="button"
+            class="inline-flex items-center gap-2 rounded-full border border-white/20 px-3 py-1 text-xs font-semibold text-slate-200 transition hover:border-primary/40 hover:text-primary"
+            on:click={handleCreate}
+          >
+            New deal
+          </button>
+        </header>
+        <DealForm {draft} index={editingIndex} on:save={handleSave} on:cancel={handleCancel} />
+      </section>
+
+      <DealList deals={$simulation.deals} onEdit={handleEdit} onDelete={handleDelete} />
     </div>
     <aside class="space-y-6">
       <StatsPanel

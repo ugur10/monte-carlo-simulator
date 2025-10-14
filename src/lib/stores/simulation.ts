@@ -7,6 +7,7 @@ import type {
   SimulationRunStatus,
   SimulationUiState,
 } from '$lib/types';
+import { validateDeal } from '$lib/validation/deal';
 
 const DEFAULT_REVENUE_TARGETS = [100_000, 200_000, 300_000];
 const DEFAULT_CONFIDENCE_LEVELS = [0.5, 0.8, 0.95];
@@ -45,6 +46,40 @@ export function createSimulationStore(initial?: Partial<SimulationUiState>): Sim
   };
 
   return writable(state);
+}
+
+/**
+ * Adds a new deal or updates an existing one immutably.
+ */
+export function upsertDeal(
+  state: SimulationUiState,
+  draft: DealInput,
+  index?: number,
+): SimulationUiState {
+  const parsed = validateDeal(draft);
+  const next: DealInput = { ...parsed, id: draft.id };
+  const deals = [...state.deals];
+  if (typeof index === 'number' && index >= 0 && index < deals.length) {
+    deals[index] = { ...next };
+  } else {
+    deals.push({ ...next });
+  }
+  return { ...state, deals };
+}
+
+/**
+ * Removes a deal at the specified index.
+ */
+export function removeDeal(state: SimulationUiState, index: number): SimulationUiState {
+  const deals = state.deals.filter((_, i) => i !== index);
+  return { ...state, deals };
+}
+
+/**
+ * Resets status/error indicators when user interaction resumes.
+ */
+export function resetStatus(state: SimulationUiState): SimulationUiState {
+  return { ...state, status: 'idle', error: undefined };
 }
 
 /**
