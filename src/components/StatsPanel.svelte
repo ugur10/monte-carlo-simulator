@@ -1,39 +1,59 @@
 <script lang="ts">
-  import type { SimulationRunStatus, SimulationSummary } from '$lib/types';
-  import { describeStatus } from '$lib/stores/simulation';
+import { describeStatus } from '$lib/stores/simulation';
+import type { SimulationRunStatus, SimulationSummary } from '$lib/types';
 
-  export let summary: SimulationSummary | undefined;
-  export let status: SimulationRunStatus = 'idle';
-  export let error: string | undefined;
+const props = $props<{
+  summary?: SimulationSummary;
+  status?: SimulationRunStatus;
+  error?: string;
+  duration?: number;
+  lastUpdatedAt?: string;
+}>();
+
+const statusLabel = $derived(describeStatus(props.status ?? 'idle'));
+const formattedDuration = $derived(
+  typeof props.duration === 'number' ? `${props.duration.toFixed(2)} ms` : '—',
+);
+const formattedTimestamp = $derived(
+  props.lastUpdatedAt ? new Date(props.lastUpdatedAt).toLocaleString() : '—',
+);
 </script>
 
 <section class="rounded-[var(--radius-card)] border border-white/10 bg-surface/80 p-6 shadow-[var(--shadow-card)] backdrop-blur">
   <header class="mb-3 flex items-center justify-between">
     <h2 class="text-sm font-semibold uppercase tracking-widest text-slate-300">Run Status</h2>
-    <span class="text-xs text-slate-500">{describeStatus(status)}</span>
+    <span class="text-xs text-slate-500">{statusLabel}</span>
   </header>
 
-  {#if error}
+  {#if props.error}
     <div class="rounded-lg border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger">
-      {error}
+      {props.error}
     </div>
-  {:else if summary}
+  {:else if props.summary}
     <dl class="grid grid-cols-2 gap-3 text-sm text-slate-200">
       <div>
         <dt class="text-xs uppercase tracking-widest text-slate-500">Mean</dt>
-        <dd class="font-semibold">${summary.mean.toLocaleString()}</dd>
+        <dd class="font-semibold">${props.summary.mean.toLocaleString()}</dd>
       </div>
       <div>
         <dt class="text-xs uppercase tracking-widest text-slate-500">Median</dt>
-        <dd class="font-semibold">${summary.median.toLocaleString()}</dd>
+        <dd class="font-semibold">${props.summary.median.toLocaleString()}</dd>
       </div>
       <div>
         <dt class="text-xs uppercase tracking-widest text-slate-500">P10</dt>
-        <dd class="font-semibold">${summary.percentile10.toLocaleString()}</dd>
+        <dd class="font-semibold">${props.summary.percentile10.toLocaleString()}</dd>
       </div>
       <div>
         <dt class="text-xs uppercase tracking-widest text-slate-500">P90</dt>
-        <dd class="font-semibold">${summary.percentile90.toLocaleString()}</dd>
+        <dd class="font-semibold">${props.summary.percentile90.toLocaleString()}</dd>
+      </div>
+      <div>
+        <dt class="text-xs uppercase tracking-widest text-slate-500">Runtime</dt>
+        <dd class="font-semibold">{formattedDuration}</dd>
+      </div>
+      <div>
+        <dt class="text-xs uppercase tracking-widest text-slate-500">Last run</dt>
+        <dd class="font-semibold">{formattedTimestamp}</dd>
       </div>
     </dl>
   {:else}
