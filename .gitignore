@@ -4,7 +4,6 @@ node_modules/
 .pnp.loader.mjs
 
 # Bun
-bun.lockb
 .bun/
 
 # Build outputs
@@ -12,6 +11,10 @@ bun.lockb
 /.svelte-kit/
 /dist/
 /coverage/
+/.output/
+.vercel/
+.netlify/
+.wrangler/
 
 # Logs & Diagnostics
 npm-debug.log*
@@ -34,7 +37,11 @@ Thumbs.db
 .env.*.local
 .env.local
 .envrc
+!.env.example
+!.env.test
 
 # Testing
 /.tmp/
 /tmp/
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
