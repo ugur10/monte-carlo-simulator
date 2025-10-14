@@ -93,6 +93,51 @@ describe('simulatePipeline', () => {
     expect(result.dealImpacts).toHaveLength(0);
   });
 
+  it('returns zeroed results when no deals are supplied', () => {
+    const result = simulatePipeline([], { iterations: 500, seed: 42 });
+
+    expect(result.revenueSamples).toHaveLength(500);
+    expect(result.revenueSamples.every((value) => value === 0)).toBe(true);
+    expect(result.histogram).toHaveLength(1);
+    expect(result.histogram[0]).toMatchObject({
+      start: 0,
+      end: 0,
+      probability: 1,
+    });
+    expect(result.summary).toMatchObject({
+      mean: 0,
+      min: 0,
+      max: 0,
+    });
+  });
+
+  it('clamps deal probabilities to the [0, 1] interval', () => {
+    const extremeDeals: Deal[] = [
+      {
+        id: 'negative-prob',
+        name: 'Impossible Upsell',
+        amount: 10_000,
+        winProbability: -0.4,
+        expectedCloseDate: '2025-09-01',
+      },
+      {
+        id: 'certain-win',
+        name: 'Locked Renewal',
+        amount: 25_000,
+        winProbability: 1.25,
+        expectedCloseDate: '2025-10-01',
+      },
+    ];
+
+    const result = simulatePipeline(extremeDeals, { iterations: 200, seed: 7 });
+
+    // Negative probabilities should never contribute revenue.
+    expect(result.revenueSamples.every((value) => value === 25_000)).toBe(true);
+    expect(result.dealImpacts).toHaveLength(extremeDeals.length);
+    expect(result.dealImpacts[0].expectedValue).toBe(0);
+    expect(result.dealImpacts[1].expectedValue).toBeCloseTo(25_000);
+  });
+
   it('computes deal impact metrics within reasonable bounds', () => {
     const result = simulatePipeline(deals, baseConfig);
 
