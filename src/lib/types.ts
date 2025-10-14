@@ -122,3 +122,18 @@ export interface SavedScenario {
   savedAt: string;
   updatedAt: string;
 }
+
+export type SimulationRunStatus = 'idle' | 'running' | 'success' | 'error';
+
+/**
+ * View-model state consumed by the interactive UI.
+ */
+export interface SimulationUiState {
+  deals: DealInput[];
+  config: SimulationConfig;
+  result?: SimulationResult;
+  status: SimulationRunStatus;
+  error?: string;
+  lastRunId?: string;
+  lastUpdatedAt?: string;
+}
