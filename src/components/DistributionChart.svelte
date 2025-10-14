@@ -7,8 +7,9 @@ import type { HistogramBin } from '$lib/types';
 
 const props = $props<{ bins: HistogramBin[] }>();
 
-let canvas: HTMLCanvasElement | null = null;
-let chart: Chart<'bar'> | null = null;
+let canvas = $state<HTMLCanvasElement | null>(null);
+let chart = $state<Chart<'bar'> | null>(null);
+
 let tooltips: string[] = [];
 
 function updateChart() {
