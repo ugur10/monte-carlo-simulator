@@ -165,23 +165,28 @@ describe('createSimulationMetadata', () => {
 describe('generateRunId', () => {
   afterEach(() => {
     vi.restoreAllMocks();
-    vi.unstubAllGlobals();
   });
 
   it('uses crypto.randomUUID when available', () => {
     const mockUUID = '00000000-0000-0000-0000-000000000000';
     const randomUUID = vi.fn(() => mockUUID);
-    vi.stubGlobal('crypto', { randomUUID } as unknown as Crypto);
+    const cryptoSpy = vi
+      .spyOn(globalThis, 'crypto', 'get')
+      .mockReturnValue({ randomUUID } as unknown as Crypto);
 
     expect(generateRunId('demo')).toBe(`demo-${mockUUID}`);
     expect(randomUUID).toHaveBeenCalledTimes(1);
+    cryptoSpy.mockRestore();
   });
 
   it('falls back to Math.random when crypto is missing', () => {
-    vi.stubGlobal('crypto', undefined);
+    const cryptoSpy = vi
+      .spyOn(globalThis, 'crypto', 'get')
+      .mockReturnValue(undefined as unknown as Crypto);
     vi.spyOn(Math, 'random').mockReturnValue(0.123456);
 
     const runId = generateRunId('demo');
     expect(runId.startsWith('demo-')).toBe(true);
+    cryptoSpy.mockRestore();
   });
 });
