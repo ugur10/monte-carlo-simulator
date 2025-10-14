@@ -1,8 +1,10 @@
 import type {
   ConfidenceInterval,
+  HistogramBin,
   SimulationConfig,
   SimulationMetadata,
   SimulationSummary,
+  TargetProbability,
 } from './types';
 
 export type RandomGenerator = () => number;
@@ -44,6 +46,14 @@ export function normalizeConfidenceLevels(levels?: number[]): number[] {
   ).sort((a, b) => a - b);
 
   return normalized.length ? normalized : [...DEFAULT_CONFIDENCE_LEVELS];
+}
+
+export function normalizeHistogramBinCount(binCount?: number): number {
+  if (typeof binCount !== 'number' || !Number.isFinite(binCount)) {
+    return DEFAULT_HISTOGRAM_BIN_COUNT;
+  }
+
+  return clampInteger(binCount, 5, 200);
 }
 
 export function calculatePercentile(sortedValues: readonly number[], percentile: number): number {
@@ -122,6 +132,80 @@ export function buildConfidenceIntervals(
   });
 }
 
+export function computeHistogram(samples: readonly number[], binCount: number): HistogramBin[] {
+  if (!samples.length) {
+    return [];
+  }
+
+  const min = Math.min(...samples);
+  const max = Math.max(...samples);
+
+  if (!Number.isFinite(min) || !Number.isFinite(max)) {
+    return [];
+  }
+
+  if (min === max) {
+    return [
+      {
+        start: min,
+        end: max,
+        count: samples.length,
+        probability: 1,
+      },
+    ];
+  }
+
+  const effectiveBinCount = Math.max(1, binCount | 0);
+  const range = max - min;
+  const width = range / effectiveBinCount;
+
+  const bins: HistogramBin[] = Array.from({ length: effectiveBinCount }, (_, index) => {
+    const start = min + index * width;
+    const end = index === effectiveBinCount - 1 ? max : start + width;
+    return { start, end, count: 0, probability: 0 };
+  });
+
+  for (const sample of samples) {
+    const clamped = Math.min(Math.max(sample, min), max);
+    let index = width === 0 ? 0 : Math.floor((clamped - min) / width);
+    if (index >= effectiveBinCount) {
+      index = effectiveBinCount - 1;
+    } else if (index < 0) {
+      index = 0;
+    }
+    bins[index].count += 1;
+  }
+
+  const total = samples.length;
+  for (const bin of bins) {
+    bin.probability = bin.count / total;
+  }
+
+  return bins;
+}
+
+export function computeTargetProbabilities(
+  sortedSamples: readonly number[],
+  targets?: number[],
+): TargetProbability[] {
+  if (!targets || targets.length === 0 || sortedSamples.length === 0) {
+    return [];
+  }
+
+  const uniqueTargets = Array.from(
+    new Set(targets.filter((target) => Number.isFinite(target)).map((target) => Number(target))),
+  ).sort((a, b) => a - b);
+
+  const total = sortedSamples.length;
+  return uniqueTargets.map((target) => {
+    const index = lowerBound(sortedSamples, target);
+    return {
+      target,
+      probability: (total - index) / total,
+    };
+  });
+}
+
 export function sortNumbers(values: readonly number[]): number[] {
   return [...values].sort((a, b) => a - b);
 }
@@ -173,4 +257,20 @@ export function generateRunId(prefix = 'simulation'): string {
   }
 
   return `${prefix}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function lowerBound(array: readonly number[], target: number): number {
+  let low = 0;
+  let high = array.length;
+
+  while (low < high) {
+    const mid = (low + high) >>> 1;
+    if (array[mid] >= target) {
+      high = mid;
+    } else {
+      low = mid + 1;
+    }
+  }
+
+  return low;
 }

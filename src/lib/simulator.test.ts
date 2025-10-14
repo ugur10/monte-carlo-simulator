@@ -1,13 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
 import { simulatePipeline } from './simulator';
-import type { Deal } from './types';
-import {
-  createSeededRng,
-  DEFAULT_CONFIDENCE_LEVELS,
-  DEFAULT_SIMULATION_ITERATIONS,
-  normalizeConfidenceLevels,
-} from './utils';
+import type { Deal, SimulationConfig } from './types';
+import { createSeededRng, DEFAULT_CONFIDENCE_LEVELS, normalizeConfidenceLevels } from './utils';
 
 describe('createSeededRng', () => {
   it('produces a deterministic sequence when seeded', () => {
@@ -52,25 +47,64 @@ describe('simulatePipeline', () => {
     },
   ];
 
-  it('returns a result structure with defaulted metadata', () => {
-    const result = simulatePipeline(deals);
+  const baseConfig: SimulationConfig = {
+    iterations: 2_000,
+    seed: 1_337,
+    histogramBinCount: 24,
+    revenueTargets: [100_000, 150_000],
+  };
 
-    expect(result.metadata.iterations).toBe(DEFAULT_SIMULATION_ITERATIONS);
-    expect(result.metadata.generatedAt).toBeTruthy();
+  it('produces deterministic results for identical seeds', () => {
+    const first = simulatePipeline(deals, baseConfig);
+    const second = simulatePipeline(deals, baseConfig);
+
+    expect(second.revenueSamples).toEqual(first.revenueSamples);
+    expect(second.histogram).toEqual(first.histogram);
+    expect(second.targetProbabilities).toEqual(first.targetProbabilities);
+  });
+
+  it('computes metadata, summary stats, and histogram totals', () => {
+    const result = simulatePipeline(deals, baseConfig);
+
+    expect(result.metadata.iterations).toBe(baseConfig.iterations);
+    expect(result.metadata.seed).toBe(baseConfig.seed);
     expect(result.metadata.runId).toMatch(/^simulation-/);
-    expect(result.dealImpacts).toHaveLength(deals.length);
     expect(result.confidenceIntervals.map((c) => c.level)).toEqual(DEFAULT_CONFIDENCE_LEVELS);
+
+    const expectedMean = deals.reduce((acc, deal) => acc + deal.amount * deal.winProbability, 0);
+    expect(Math.abs(result.summary.mean - expectedMean)).toBeLessThan(20_000);
+
+    const histogramCount = result.histogram.reduce((acc, bin) => acc + bin.count, 0);
+    expect(histogramCount).toBe(baseConfig.iterations);
   });
 
-  it('respects iteration overrides in config', () => {
-    const iterations = 5_000;
-    const result = simulatePipeline(deals, { iterations });
-    expect(result.metadata.iterations).toBe(iterations);
+  it('calculates target probabilities in ascending order', () => {
+    const result = simulatePipeline(deals, baseConfig);
+    const targets = result.targetProbabilities.map((entry) => entry.target);
+
+    expect(targets).toEqual([...targets].sort((a, b) => a - b));
+    expect(
+      result.targetProbabilities.every((entry) => entry.probability >= 0 && entry.probability <= 1),
+    ).toBe(true);
   });
 
-  it('pre-computes expected value for each deal impact stub', () => {
-    const result = simulatePipeline(deals);
-    const expectedValues = result.dealImpacts.map((impact) => impact.expectedValue);
-    expect(expectedValues).toEqual([72_000, 28_000]);
+  it('supports disabling deal impact analytics', () => {
+    const result = simulatePipeline(deals, { ...baseConfig, includeDealImpacts: false });
+    expect(result.dealImpacts).toHaveLength(0);
+  });
+
+  it('computes deal impact metrics within reasonable bounds', () => {
+    const result = simulatePipeline(deals, baseConfig);
+
+    expect(result.dealImpacts).toHaveLength(deals.length);
+    result.dealImpacts.forEach((impact, index) => {
+      expect(impact.expectedValue).toBeGreaterThanOrEqual(0);
+      expect(impact.varianceContribution).toBeGreaterThanOrEqual(0);
+      expect(impact.sensitivity).toBeGreaterThanOrEqual(0);
+      expect(impact.sensitivity).toBeLessThanOrEqual(1);
+
+      // Expected value should not exceed the deal amount.
+      expect(impact.expectedValue).toBeLessThanOrEqual(deals[index].amount);
+    });
   });
 });

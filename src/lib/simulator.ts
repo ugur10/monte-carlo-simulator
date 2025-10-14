@@ -1,34 +1,132 @@
-import type { Deal, SimulationConfig, SimulationResult } from './types';
+import type { Deal, DealImpact, SimulationConfig, SimulationResult } from './types';
 import {
   buildConfidenceIntervals,
+  calculatePercentile,
+  clampProbability,
+  computeHistogram,
   computeSummaryStatistics,
+  computeTargetProbabilities,
+  createSeededRng,
   createSimulationMetadata,
   generateRunId,
   normalizeConfidenceLevels,
+  normalizeHistogramBinCount,
   normalizeIterations,
+  normalizeSeed,
+  sortNumbers,
 } from './utils';
 
-/**
- * Placeholder Monte Carlo engine. The statistical machinery will be implemented in Phase 2.
- * For now it validates configuration and returns an empty result structure that downstream layers can consume.
- */
 export function simulatePipeline(deals: Deal[], config?: SimulationConfig): SimulationResult {
+  const sanitizedDeals = deals.map((deal) => ({
+    ...deal,
+    winProbability: clampProbability(deal.winProbability),
+  }));
+
   const iterations = normalizeIterations(config);
   const confidenceLevels = normalizeConfidenceLevels(config?.confidenceLevels);
-  const metadata = createSimulationMetadata(config, { iterations, runId: generateRunId() });
+  const histogramBins = normalizeHistogramBinCount(config?.histogramBinCount);
+  const seed = normalizeSeed(config?.seed);
+  const rng = createSeededRng(seed);
+
+  const revenueBuffer = new Float64Array(iterations);
+  const dealWinCounts = sanitizedDeals.map(() => 0);
+  const dealWinningIterations = sanitizedDeals.map(() => [] as number[]);
+
+  for (let iteration = 0; iteration < iterations; iteration += 1) {
+    let total = 0;
+
+    sanitizedDeals.forEach((deal, index) => {
+      if (deal.winProbability === 0 || deal.amount === 0) {
+        return;
+      }
+
+      if (rng() < deal.winProbability) {
+        total += deal.amount;
+        dealWinCounts[index] += 1;
+        dealWinningIterations[index].push(iteration);
+      }
+    });
+
+    revenueBuffer[iteration] = total;
+  }
+
+  const revenueSamples = Array.from(revenueBuffer);
+  const sortedSamples = sortNumbers(revenueSamples);
+  const confidenceIntervals = buildConfidenceIntervals(sortedSamples, confidenceLevels);
+  const histogram = computeHistogram(revenueSamples, histogramBins);
+  const summary = computeSummaryStatistics(revenueSamples);
+  const metadata = createSimulationMetadata(config, {
+    iterations,
+    seed,
+    runId: generateRunId(),
+  });
+
+  const targetProbabilities = computeTargetProbabilities(sortedSamples, config?.revenueTargets);
+
+  const shouldIncludeDealImpacts = config?.includeDealImpacts ?? true;
+  const dealImpacts: DealImpact[] = shouldIncludeDealImpacts
+    ? buildDealImpacts({
+        deals: sanitizedDeals,
+        revenueSamples,
+        iterations,
+        dealWinCounts,
+        dealWinningIterations,
+        sortedSamples,
+      })
+    : [];
 
   return {
-    revenueSamples: [],
-    histogram: [],
-    confidenceIntervals: buildConfidenceIntervals([], confidenceLevels),
-    targetProbabilities: [],
-    dealImpacts: deals.map((deal) => ({
-      dealId: deal.id,
-      expectedValue: deal.amount * deal.winProbability,
-      varianceContribution: 0,
-      sensitivity: 0,
-    })),
-    summary: computeSummaryStatistics([]),
+    revenueSamples,
+    histogram,
+    confidenceIntervals,
+    targetProbabilities,
+    dealImpacts,
+    summary,
     metadata,
   };
+}
+
+interface BuildDealImpactsOptions {
+  deals: Deal[];
+  revenueSamples: number[];
+  iterations: number;
+  dealWinCounts: number[];
+  dealWinningIterations: number[][];
+  sortedSamples: number[];
+}
+
+function buildDealImpacts({
+  deals,
+  revenueSamples,
+  iterations,
+  dealWinCounts,
+  dealWinningIterations,
+  sortedSamples,
+}: BuildDealImpactsOptions): DealImpact[] {
+  if (!deals.length || iterations <= 0) {
+    return [];
+  }
+
+  const tailThreshold = calculatePercentile(sortedSamples, 0.8);
+
+  return deals.map((deal, index) => {
+    const wins = dealWinCounts[index] ?? 0;
+    const winFrequency = wins / iterations;
+    const varianceContribution = deal.amount * deal.amount * winFrequency * (1 - winFrequency);
+
+    let sensitivityHits = 0;
+    for (const iterationIndex of dealWinningIterations[index] ?? []) {
+      const revenue = revenueSamples[iterationIndex];
+      if (revenue >= tailThreshold && revenue - deal.amount < tailThreshold) {
+        sensitivityHits += 1;
+      }
+    }
+
+    return {
+      dealId: deal.id,
+      expectedValue: winFrequency * deal.amount,
+      varianceContribution,
+      sensitivity: sensitivityHits / iterations,
+    };
+  });
 }
