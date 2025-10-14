@@ -95,7 +95,10 @@ export function calculatePercentile(sortedValues: readonly number[], percentile:
 /**
  * Produces standard descriptive statistics for a list of revenue outcomes.
  */
-export function computeSummaryStatistics(samples: readonly number[]): SimulationSummary {
+export function computeSummaryStatistics(
+  samples: readonly number[],
+  options?: { sorted?: boolean },
+): SimulationSummary {
   if (!samples.length) {
     return {
       mean: 0,
@@ -108,7 +111,7 @@ export function computeSummaryStatistics(samples: readonly number[]): Simulation
     };
   }
 
-  const sorted = sortNumbers(samples);
+  const sorted = options?.sorted ? samples : sortNumbers(samples);
   const mean = sorted.reduce((acc, value) => acc + value, 0) / sorted.length;
   const variance =
     sorted.reduce((acc, value) => {
@@ -132,6 +135,7 @@ export function computeSummaryStatistics(samples: readonly number[]): Simulation
 export function buildConfidenceIntervals(
   samples: readonly number[],
   levels: readonly number[],
+  options?: { sorted?: boolean },
 ): ConfidenceInterval[] {
   if (!samples.length) {
     return levels.map((level) => ({
@@ -141,7 +145,7 @@ export function buildConfidenceIntervals(
     }));
   }
 
-  const sorted = sortNumbers(samples);
+  const sorted = options?.sorted ? samples : sortNumbers(samples);
   return levels.map((level) => {
     const tail = (1 - level) / 2;
     return {

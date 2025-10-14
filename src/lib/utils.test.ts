@@ -58,6 +58,14 @@ describe('computeSummaryStatistics', () => {
     expect(summary.percentile90).toBe(46);
     expect(summary.standardDeviation).toBeCloseTo(14.142, 3);
   });
+
+  it('honours the sorted option to reuse precomputed ordering', () => {
+    const sorted = [5, 10, 15];
+    const summary = computeSummaryStatistics(sorted, { sorted: true });
+    expect(summary.mean).toBeCloseTo(10, 5);
+    expect(summary.min).toBe(5);
+    expect(summary.max).toBe(15);
+  });
 });
 
 describe('buildConfidenceIntervals', () => {
@@ -66,6 +74,15 @@ describe('buildConfidenceIntervals', () => {
     const intervals = buildConfidenceIntervals([10, 20, 30, 40, 50], levels);
     expect(intervals).toHaveLength(levels.length);
     expect(intervals[0]).toMatchObject({ level: 0.5, lower: 20, upper: 40 });
+  });
+
+  it('reuses sorted samples when instructed', () => {
+    const levels = [0.5];
+    const sorted = [10, 20, 30, 40, 50];
+    const intervals = buildConfidenceIntervals(sorted, levels, { sorted: true });
+
+    expect(intervals[0].lower).toBe(20);
+    expect(intervals[0].upper).toBe(40);
   });
 });
 

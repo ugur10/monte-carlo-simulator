@@ -59,9 +59,11 @@ export function simulatePipeline(deals: Deal[], config?: SimulationConfig): Simu
 
   const revenueSamples = Array.from(revenueBuffer);
   const sortedSamples = sortNumbers(revenueSamples);
-  const confidenceIntervals = buildConfidenceIntervals(sortedSamples, confidenceLevels);
+  const confidenceIntervals = buildConfidenceIntervals(sortedSamples, confidenceLevels, {
+    sorted: true,
+  });
   const histogram = computeHistogram(revenueSamples, histogramBins);
-  const summary = computeSummaryStatistics(revenueSamples);
+  const summary = computeSummaryStatistics(sortedSamples, { sorted: true });
   const metadata = createSimulationMetadata(config, {
     iterations,
     seed,
