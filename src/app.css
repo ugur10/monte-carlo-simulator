@@ -1,0 +1,37 @@
+@import "tailwindcss";
+@plugin '@tailwindcss/forms';
+
+@theme {
+  --font-sans: "Inter Variable", "Inter", system-ui, sans-serif;
+  --font-mono:
+    "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+  --color-surface: 15 23 42;
+  --color-surface-strong: 30 41 59;
+  --color-surface-muted: 51 65 85;
+  --color-border-muted: 71 85 105;
+  --color-primary: 94 234 212;
+  --color-primary-strong: 16 185 129;
+  --color-danger: 250 112 112;
+  --radius-card: 1.25rem;
+  --shadow-card: 0 16px 40px -24px rgb(15 23 42 / 0.65);
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply min-h-screen bg-slate-950 text-slate-100 antialiased font-sans;
+  }
+
+  a {
+    @apply text-primary hover:text-primary-strong transition-colors;
+  }
+
+  ::selection {
+    background-color: rgb(var(--color-primary) / 0.16);
+    color: inherit;
+  }
+}
