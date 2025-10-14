@@ -10,6 +10,7 @@ Monte Carlo Sales Pipeline Simulator forecasts revenue outcomes for B2B deal fun
 - **Simulation Engine**
   - Pure TypeScript Monte Carlo engine (`src/lib/simulator.ts`) producing revenue samples, histograms, confidence intervals, target probabilities, and per-deal sensitivity metrics in <1 s for 10k iterations.
   - Deterministic seeded RNG utilities, percentile helpers, and config normalization with comprehensive unit tests.
+  - Automated performance regression guard (`src/lib/simulator.test.ts`) asserting a 10k-iteration scenario completes within a 500 ms budget on reference hardware.
 - **API Surface**
   - `/api/simulate` POST endpoint with Zod validation, structured JSON errors, and execution timing metadata.
   - Integration tests covering happy path, validation failures, auto-generated IDs, and deal impact toggles.
@@ -38,6 +39,12 @@ bun run dev        # http://localhost:5173
 | `bun run check` | `svelte-check` type/diagnostic pass |
 | `bun run test` | Vitest suite with coverage |
 | `bun run coverage` | Coverage report only |
+
+## Verification & Quality Gates
+- `bun run lint` – Biome linting/formatting (includes `.svelte` coverage via overrides).
+- `bun run check` – SvelteKit/TypeScript diagnostics in strict mode.
+- `bun run test` – Vitest unit + integration suite with V8 coverage enabled.
+- Performance regression guard ensures 10k-iteration Monte Carlo runs stay below 500 ms, preventing silent degradations as logic evolves.
 
 ## API Reference
 ### `POST /api/simulate`
