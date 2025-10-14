@@ -57,12 +57,16 @@ export function simulatePipeline(deals: Deal[], config?: SimulationConfig): Simu
     revenueBuffer[iteration] = total;
   }
 
+  // Convert typed buffers into ergonomic JS structures before post-processing.
   const revenueSamples = Array.from(revenueBuffer);
+  // Many downstream calculations benefit from a sorted copy; retain both forms.
   const sortedSamples = sortNumbers(revenueSamples);
+  // Confidence intervals reuse the sorted dataset to avoid redundant sorts.
   const confidenceIntervals = buildConfidenceIntervals(sortedSamples, confidenceLevels, {
     sorted: true,
   });
   const histogram = computeHistogram(revenueSamples, histogramBins);
+  // Summary statistics similarly reuse the pre-sorted samples for efficiency.
   const summary = computeSummaryStatistics(sortedSamples, { sorted: true });
   const metadata = createSimulationMetadata(config, {
     iterations,
@@ -70,8 +74,10 @@ export function simulatePipeline(deals: Deal[], config?: SimulationConfig): Simu
     runId: generateRunId(),
   });
 
+  // Targets are evaluated against the sorted list to read off survival probabilities.
   const targetProbabilities = computeTargetProbabilities(sortedSamples, config?.revenueTargets);
 
+  // Deal impact analytics can be expensive; allow opting out via configuration.
   const shouldIncludeDealImpacts = config?.includeDealImpacts ?? true;
   const dealImpacts: DealImpact[] = shouldIncludeDealImpacts
     ? buildDealImpacts({

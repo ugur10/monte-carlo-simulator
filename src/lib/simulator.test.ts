@@ -152,4 +152,20 @@ describe('simulatePipeline', () => {
       expect(impact.expectedValue).toBeLessThanOrEqual(deals[index].amount);
     });
   });
+
+  it('completes a 10k-iteration run within the performance budget', () => {
+    const perfDeals: Deal[] = Array.from({ length: 25 }, (_, index) => ({
+      id: `deal-${index + 1}`,
+      name: `Synthetic Opportunity ${index + 1}`,
+      amount: 50_000 + index * 1_000,
+      winProbability: 0.2 + (index % 5) * 0.1,
+      expectedCloseDate: '2026-03-01',
+    }));
+
+    const start = performance.now();
+    simulatePipeline(perfDeals, { iterations: 10_000, seed: 2025 });
+    const duration = performance.now() - start;
+
+    expect(duration).toBeLessThan(500);
+  });
 });
