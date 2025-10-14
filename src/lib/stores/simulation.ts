@@ -1,9 +1,10 @@
 import type { Writable } from 'svelte/store';
-import { writable } from 'svelte/store';
-
+import { get, writable } from 'svelte/store';
+import { postSimulation } from '$lib/api/simulate';
 import type {
   DealInput,
   SimulationConfig,
+  SimulationRequestPayload,
   SimulationRunStatus,
   SimulationUiState,
 } from '$lib/types';
@@ -117,3 +118,59 @@ export function describeStatus(status: SimulationRunStatus): string {
 }
 
 export const defaultSimulationStore = createSimulationStore();
+
+/**
+ * Builds the payload sent to the simulation API based on current store state.
+ */
+export function buildSimulationPayload(state: SimulationUiState): SimulationRequestPayload {
+  return {
+    deals: state.deals.map((deal) => ({ ...deal })),
+    config: { ...state.config },
+  };
+}
+
+/**
+ * Runs the Monte Carlo simulation by calling the `/api/simulate` endpoint.
+ * The store is updated with loading indicators, results, and error messages.
+ */
+export async function runSimulation(
+  store: SimulationStore,
+  fetchImpl: typeof fetch = fetch,
+): Promise<void> {
+  const state = get(store);
+
+  if (!state.deals.length) {
+    store.update((current) => ({
+      ...current,
+      status: 'error',
+      error: 'Add at least one deal before running a simulation.',
+    }));
+    return;
+  }
+
+  store.update((current) => ({
+    ...current,
+    status: 'running',
+    error: undefined,
+  }));
+
+  const payload = buildSimulationPayload(get(store));
+  const response = await postSimulation(payload, fetchImpl);
+
+  if ('result' in response) {
+    store.update((current) => ({
+      ...current,
+      status: 'success',
+      result: response.result,
+      lastRunId: response.result.metadata.runId,
+      lastUpdatedAt: new Date().toISOString(),
+      error: undefined,
+    }));
+  } else {
+    store.update((current) => ({
+      ...current,
+      status: 'error',
+      error: response.message,
+    }));
+  }
+}
