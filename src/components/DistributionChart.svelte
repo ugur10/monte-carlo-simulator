@@ -43,8 +43,8 @@ async function updateChart() {
         {
           label: 'Probability (%)',
           data: chartData.values,
-          backgroundColor: 'rgba(94, 234, 212, 0.45)',
-          borderColor: 'rgba(94, 234, 212, 0.9)',
+          backgroundColor: 'rgba(79, 70, 229, 0.35)',
+          borderColor: 'rgba(67, 56, 202, 0.85)',
           borderWidth: 1,
           borderRadius: 6,
           maxBarThickness: 42,
@@ -66,7 +66,7 @@ async function updateChart() {
               const label = chartData.labels[index];
               return typeof label === 'string' ? label.replace(' – ', '–') : label;
             },
-            color: '#94a3b8',
+            color: '#64748b',
           },
           grid: {
             display: false,
@@ -79,10 +79,10 @@ async function updateChart() {
             callback(value) {
               return `${value}%`;
             },
-            color: '#94a3b8',
+            color: '#64748b',
           },
           grid: {
-            color: 'rgba(148, 163, 184, 0.15)',
+            color: 'rgba(148, 163, 184, 0.2)',
           },
         },
       },
@@ -96,8 +96,8 @@ async function updateChart() {
               return tooltips[context.dataIndex] ?? '';
             },
           },
-          backgroundColor: 'rgba(15, 23, 42, 0.9)',
-          borderColor: 'rgba(94, 234, 212, 0.3)',
+          backgroundColor: 'rgba(15, 23, 42, 0.85)',
+          borderColor: 'rgba(79, 70, 229, 0.35)',
           borderWidth: 1,
           titleColor: '#e2e8f0',
           bodyColor: '#cbd5f5',
@@ -132,14 +132,14 @@ $effect(() => {
 });
 </script>
 
-<section class="rounded-[var(--radius-card)] border border-white/10 bg-surface/70 p-6 shadow-[var(--shadow-card)] backdrop-blur">
+<section class="rounded-[var(--radius-card)] border border-slate-200 bg-white p-6 shadow-[var(--shadow-card)]">
   <header class="mb-3 flex items-center justify-between">
-    <h2 class="text-sm font-semibold uppercase tracking-widest text-slate-300">Revenue Distribution</h2>
+    <h2 class="text-sm font-semibold uppercase tracking-widest text-slate-500">Revenue Distribution</h2>
     <span class="text-xs text-slate-500">{props.bins.length} bins</span>
   </header>
 
   {#if props.bins.length === 0}
-    <p class="text-sm text-slate-400">
+    <p class="text-sm text-slate-500">
       Add deals and run a simulation to render the revenue distribution histogram.
     </p>
   {:else}
