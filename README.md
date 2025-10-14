@@ -27,12 +27,6 @@ bun install
 bun run dev        # http://localhost:5173
 ```
 
-If ports 5173/5174 are occupied:
-```bash
-lsof -ti:5173 | xargs kill
-lsof -ti:5174 | xargs kill
-```
-
 ## Project Scripts
 | Command | Description |
 | --- | --- |
