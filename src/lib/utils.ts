@@ -247,6 +247,7 @@ export function createSimulationMetadata(
     generatedAt: overrides.generatedAt ?? new Date().toISOString(),
     version: overrides.version ?? SIMULATION_VERSION,
     runId: overrides.runId,
+    durationMs: overrides.durationMs,
   };
 }
 

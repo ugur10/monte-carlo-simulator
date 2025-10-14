@@ -91,6 +91,7 @@ export interface SimulationMetadata {
   generatedAt: string;
   version: string;
   runId?: string;
+  durationMs?: number;
 }
 
 export interface SimulationResult {
