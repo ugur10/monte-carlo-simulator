@@ -238,12 +238,20 @@ function handleCancel() {
         Fill every field before saving your deal.
       {/if}
     </p>
-    <button
-      type="button"
-      class="inline-flex w-full items-center justify-center rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-primary/10 sm:w-auto"
-      onclick={handleCancel}
-    >
-      Cancel
-    </button>
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-2">
+      <button
+        type="submit"
+        class="inline-flex w-full items-center justify-center rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary-strong focus:outline-none focus:ring-2 focus:ring-primary/30 sm:w-auto"
+      >
+        {#if typeof props.index === 'number'}Update deal{:else}Save deal{/if}
+      </button>
+      <button
+        type="button"
+        class="inline-flex w-full items-center justify-center rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-primary/10 sm:w-auto"
+        onclick={handleCancel}
+      >
+        Cancel
+      </button>
+    </div>
   </footer>
 </form>
