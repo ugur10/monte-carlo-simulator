@@ -10,7 +10,7 @@ const dispatch = createEventDispatcher<{
   cancel: void;
 }>();
 
-const props = $props<{ draft: DealInput; index?: number }>();
+const props = $props<{ draft: DealInput; index?: number; formId?: string }>();
 
 function cloneDraft(value: DealInput): DealInput {
   // Convert the reactive proxy passed through props into a plain object snapshot
@@ -74,7 +74,12 @@ function handleCancel() {
 }
 </script>
 
-<form bind:this={form} class="space-y-6" onsubmit={handleSubmit}>
+<form
+  bind:this={form}
+  class="space-y-6"
+  id={props.formId}
+  onsubmit={handleSubmit}
+>
   <div class="rounded-xl border border-slate-200 bg-white p-4">
     <header class="mb-3 flex items-center justify-between">
       <h3 class="text-xs uppercase tracking-[0.28em] text-slate-500">Deal essentials</h3>
@@ -225,19 +230,20 @@ function handleCancel() {
     {/if}
   </label>
 
-  <footer class="flex flex-col gap-3 sm:flex-row sm:justify-end">
+  <footer class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <p class="text-xs text-slate-500 sm:text-sm">
+      {#if typeof props.index === 'number'}
+        Updating deal #{props.index + 1}
+      {:else}
+        Fill every field before saving your deal.
+      {/if}
+    </p>
     <button
       type="button"
-      class="inline-flex items-center justify-center rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-primary/10"
+      class="inline-flex w-full items-center justify-center rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-primary/10 sm:w-auto"
       onclick={handleCancel}
     >
       Cancel
-    </button>
-    <button
-      type="submit"
-      class="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary-strong focus:outline-none focus:ring-2 focus:ring-primary/30"
-    >
-      {#if typeof props.index === 'number'}Update deal{:else}Add deal{/if}
     </button>
   </footer>
 </form>

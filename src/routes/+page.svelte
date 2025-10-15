@@ -18,6 +18,7 @@ const simulation = createSimulationStore();
 
 let draft: DealInput = $state(createDealDraft());
 let editingIndex = $state<number | undefined>(undefined);
+const formId = 'deal-form';
 const isRunning = $derived($simulation.status === 'running');
 const canSimulate = $derived($simulation.deals.length > 0 && !isRunning);
 const lastDuration = $derived($simulation.result?.metadata.durationMs);
@@ -96,15 +97,24 @@ handleCreate();
             </h2>
             <p class="text-xs text-slate-400">Capture the key inputs needed for Monte Carlo sampling.</p>
           </div>
-          <button
-            type="button"
-            class="inline-flex items-center gap-2 rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:border-primary/40 hover:text-primary"
-            onclick={handleCreate}
-          >
-            New deal
-          </button>
+          <div class="flex items-center gap-2">
+            <button
+              type="submit"
+              form={formId}
+              class="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-white transition hover:bg-primary-strong focus:outline-none focus:ring-2 focus:ring-primary/30"
+            >
+              {typeof editingIndex === 'number' ? 'Update deal' : 'Save deal'}
+            </button>
+            <button
+              type="button"
+              class="inline-flex items-center gap-2 rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:border-slate-300"
+              onclick={handleCreate}
+            >
+              Clear form
+            </button>
+          </div>
         </header>
-        <DealForm {draft} index={editingIndex} on:save={handleSave} on:cancel={handleCancel} />
+        <DealForm {draft} index={editingIndex} formId={formId} on:save={handleSave} on:cancel={handleCancel} />
       </section>
 
       <DealList deals={$simulation.deals} onEdit={handleEdit} onDelete={handleDelete} />
