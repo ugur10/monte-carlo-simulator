@@ -16,72 +16,60 @@ function remove(index: number) {
 }
 </script>
 
-<section class="rounded-[var(--radius-card)] border border-slate-200 bg-white p-6 shadow-[var(--shadow-card)]">
-  <header class="mb-4 flex items-center justify-between">
+<section class="card">
+  <header class="card__header card__header--with-actions">
     <div>
-      <h2 class="text-sm font-semibold uppercase tracking-widest text-slate-500">Pipeline Deals</h2>
-      <p class="text-xs text-slate-400">Track opportunity amounts, probabilities, and close timing.</p>
+      <p class="card__title">Pipeline Deals</p>
+      <p class="card__subtitle">Track opportunity amounts, probabilities, and close timing.</p>
     </div>
-    <span class="text-xs text-slate-500">{props.deals.length} total</span>
+    <span class="muted-text">{props.deals.length} total</span>
   </header>
 
   {#if props.deals.length === 0}
-    <p class="text-sm text-slate-500">
+    <p class="pipeline-empty">
       Add a deal to begin exploring probabilistic outcomes. You can edit or remove entries at any time.
     </p>
   {:else}
-    <ul class="space-y-3 text-sm text-slate-600">
+    <ul class="pipeline-list">
       {#each props.deals as deal, index}
-        <li class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 shadow-sm">
-          <div class="flex flex-wrap items-center justify-between gap-2">
+        <li class="pipeline-item">
+          <div class="pipeline-item__header">
             <div>
-              <span class="text-xs uppercase tracking-[0.2em] text-slate-400">Deal</span>
-              <p class="font-medium text-slate-900">{deal.name || `Deal #${index + 1}`}</p>
-              <p class="text-xs text-slate-500">{deal.owner ?? 'Unassigned owner'}</p>
+              <p class="pipeline-item__title">{deal.name || `Deal #${index + 1}`}</p>
+              <p class="pipeline-item__subtitle">{deal.owner ?? 'Unassigned owner'}</p>
             </div>
-
-            <div class="flex items-center gap-2">
-              <button
-                type="button"
-                class="inline-flex items-center gap-2 rounded-full border border-slate-200 px-3 py-1 text-xs font-medium text-slate-600 transition hover:border-primary/40 hover:bg-primary/10 hover:text-primary"
-                onclick={() => edit(index)}
-              >
+            <div class="card__actions">
+              <button type="button" class="button button--ghost" onclick={() => edit(index)}>
                 Edit
               </button>
-              <button
-                type="button"
-                class="inline-flex items-center gap-2 rounded-full border border-slate-200 px-3 py-1 text-xs font-medium text-slate-600 transition hover:border-danger/50 hover:bg-danger/10 hover:text-danger"
-                onclick={() => remove(index)}
-              >
+              <button type="button" class="button button--ghost" onclick={() => remove(index)}>
                 Remove
               </button>
             </div>
           </div>
 
-          <dl class="mt-3 grid gap-4 sm:grid-cols-3">
-            <div>
-              <dt class="text-xs uppercase tracking-[0.24em] text-slate-400">Amount</dt>
-              <dd class="text-sm font-semibold text-slate-900">${deal.amount.toLocaleString()}</dd>
+          <dl class="pipeline-item__meta">
+            <div class="meta-block">
+              <dt>Amount</dt>
+              <dd>${deal.amount.toLocaleString()}</dd>
             </div>
-
-            <div>
-              <dt class="text-xs uppercase tracking-[0.24em] text-slate-400">Win rate</dt>
-              <dd class="text-sm font-semibold text-slate-900">{(deal.winProbability * 100).toFixed(0)}%</dd>
+            <div class="meta-block">
+              <dt>Win rate</dt>
+              <dd>{(deal.winProbability * 100).toFixed(0)}%</dd>
             </div>
-
-            <div>
-              <dt class="text-xs uppercase tracking-[0.24em] text-slate-400">Expected close</dt>
-              <dd class="text-sm font-semibold text-slate-900">{deal.expectedCloseDate}</dd>
+            <div class="meta-block">
+              <dt>Expected close</dt>
+              <dd>{deal.expectedCloseDate}</dd>
             </div>
           </dl>
 
           {#if deal.stage || deal.notes}
-            <div class="mt-3 rounded-lg bg-white px-3 py-2 text-xs text-slate-500">
+            <div class="pipeline-item__notes">
               {#if deal.stage}
-                <p><span class="font-semibold text-slate-600">Stage:</span> {deal.stage}</p>
+                <p><strong>Stage:</strong> {deal.stage}</p>
               {/if}
               {#if deal.notes}
-                <p class="mt-2 whitespace-pre-wrap leading-relaxed text-slate-600">{deal.notes}</p>
+                <p style="white-space: pre-wrap;">{deal.notes}</p>
               {/if}
             </div>
           {/if}

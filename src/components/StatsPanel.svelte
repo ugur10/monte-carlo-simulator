@@ -19,45 +19,48 @@ const formattedTimestamp = $derived(
 );
 </script>
 
-<section class="rounded-[var(--radius-card)] border border-slate-200 bg-white p-6 shadow-[var(--shadow-card)]">
-  <header class="mb-3 flex items-center justify-between">
-    <h2 class="text-sm font-semibold uppercase tracking-widest text-slate-500">Run Status</h2>
-    <span class="text-xs text-slate-500">{statusLabel}</span>
+<section class="card">
+  <header class="card__header card__header--with-actions">
+    <div>
+      <p class="card__title">Run Status</p>
+      <p class="card__subtitle">Simulation progress and recent metrics.</p>
+    </div>
+    <span class="status-bubble">{statusLabel}</span>
   </header>
 
   {#if props.error}
-    <div class="rounded-lg border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger">
+    <div class="card-message" style="color: var(--color-danger); border: 1px solid rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.08); padding: 0.75rem 1rem; border-radius: 14px;">
       {props.error}
     </div>
   {:else if props.summary}
-    <dl class="grid grid-cols-2 gap-3 text-sm text-slate-600">
-      <div>
-        <dt class="text-xs uppercase tracking-widest text-slate-400">Mean</dt>
-        <dd class="font-semibold text-slate-900">${props.summary.mean.toLocaleString()}</dd>
+    <dl class="stats-panel__grid">
+      <div class="stats-panel__item">
+        <dt class="stats-panel__label">Mean</dt>
+        <dd class="stats-panel__value">${props.summary.mean.toLocaleString()}</dd>
       </div>
-      <div>
-        <dt class="text-xs uppercase tracking-widest text-slate-400">Median</dt>
-        <dd class="font-semibold text-slate-900">${props.summary.median.toLocaleString()}</dd>
+      <div class="stats-panel__item">
+        <dt class="stats-panel__label">Median</dt>
+        <dd class="stats-panel__value">${props.summary.median.toLocaleString()}</dd>
       </div>
-      <div>
-        <dt class="text-xs uppercase tracking-widest text-slate-400">P10</dt>
-        <dd class="font-semibold text-slate-900">${props.summary.percentile10.toLocaleString()}</dd>
+      <div class="stats-panel__item">
+        <dt class="stats-panel__label">P10</dt>
+        <dd class="stats-panel__value">${props.summary.percentile10.toLocaleString()}</dd>
       </div>
-      <div>
-        <dt class="text-xs uppercase tracking-widest text-slate-400">P90</dt>
-        <dd class="font-semibold text-slate-900">${props.summary.percentile90.toLocaleString()}</dd>
+      <div class="stats-panel__item">
+        <dt class="stats-panel__label">P90</dt>
+        <dd class="stats-panel__value">${props.summary.percentile90.toLocaleString()}</dd>
       </div>
-      <div>
-        <dt class="text-xs uppercase tracking-widest text-slate-400">Runtime</dt>
-        <dd class="font-semibold text-slate-900">{formattedDuration}</dd>
+      <div class="stats-panel__item">
+        <dt class="stats-panel__label">Runtime</dt>
+        <dd class="stats-panel__value">{formattedDuration}</dd>
       </div>
-      <div>
-        <dt class="text-xs uppercase tracking-widest text-slate-400">Last run</dt>
-        <dd class="font-semibold text-slate-900">{formattedTimestamp}</dd>
+      <div class="stats-panel__item">
+        <dt class="stats-panel__label">Last run</dt>
+        <dd class="stats-panel__value">{formattedTimestamp}</dd>
       </div>
     </dl>
   {:else}
-    <p class="text-sm text-slate-500">
+    <p class="card-message">
       Once simulations run, key summary statistics will render here for quick executive snapshots.
     </p>
   {/if}

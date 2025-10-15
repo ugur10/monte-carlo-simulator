@@ -70,44 +70,41 @@ handleCreate();
   <title>Monte Carlo Sales Pipeline Simulator</title>
 </svelte:head>
 
-<main class="mx-auto flex min-h-screen max-w-6xl flex-col gap-12 px-6 py-16">
-  <section class="space-y-5">
-    <span class="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-white/80 px-4 py-1 text-xs font-medium uppercase tracking-[0.32em] text-primary backdrop-blur">
-      <span class="h-1 w-1 rounded-full bg-primary" aria-hidden="true"></span>
-      Phase 4 · UI Foundations
-    </span>
+<main class="page">
+  <section class="hero">
+    <span class="badge">Phase 4 · UI Foundations</span>
 
-    <h1 class="text-balance text-4xl font-semibold leading-tight text-slate-900 md:text-5xl">
+    <h1 class="hero__title">
       Build, simulate, and understand your sales pipeline volatility
     </h1>
-    <p class="max-w-2xl text-balance text-base text-slate-600 md:text-lg">
+    <p class="hero__lead">
       The core Monte Carlo engine and API are live. This milestone sets up the interactive UI: deal
       entry, pipeline overview, and rich visualizations. Over the next iterations we&apos;ll replace
       these scaffolds with fully functional components.
     </p>
   </section>
 
-  <section class="grid gap-6 lg:grid-cols-3">
-    <div class="space-y-6 lg:col-span-2">
-      <section class="rounded-[var(--radius-card)] border border-slate-200 bg-white p-6 shadow-[var(--shadow-card)]">
-        <header class="mb-5 flex items-center justify-between">
+  <section class="layout-grid">
+    <div class="layout-grid__primary">
+      <section class="card">
+        <header class="card__header card__header--with-actions">
           <div>
-            <h2 class="text-sm font-semibold uppercase tracking-widest text-slate-500">
+            <p class="card__title">
               {typeof editingIndex === 'number' ? 'Edit Deal' : 'Add Deal'}
-            </h2>
-            <p class="text-xs text-slate-400">Capture the key inputs needed for Monte Carlo sampling.</p>
+            </p>
+            <p class="card__subtitle">Capture the key inputs needed for Monte Carlo sampling.</p>
           </div>
-          <div class="flex items-center gap-2">
+          <div class="card__actions">
             <button
               type="submit"
               form={formId}
-              class="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-white transition hover:bg-primary-strong focus:outline-none focus:ring-2 focus:ring-primary/30"
+              class="button button--primary"
             >
               {typeof editingIndex === 'number' ? 'Update deal' : 'Save deal'}
             </button>
             <button
               type="button"
-              class="inline-flex items-center gap-2 rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:border-slate-300"
+              class="button button--ghost"
               onclick={handleCreate}
             >
               Clear form
@@ -119,7 +116,7 @@ handleCreate();
 
       <DealList deals={$simulation.deals} onEdit={handleEdit} onDelete={handleDelete} />
     </div>
-    <aside class="space-y-6">
+    <aside class="layout-grid__aside">
       <StatsPanel
         summary={$simulation.result?.summary}
         status={$simulation.status}
@@ -129,7 +126,7 @@ handleCreate();
       />
       <button
         type="button"
-        class="w-full rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-white transition hover:bg-primary-strong focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500"
+        class="button button--primary"
         onclick={handleRunSimulation}
         disabled={!canSimulate}
       >
@@ -145,25 +142,16 @@ handleCreate();
     </aside>
   </section>
 
-  <section class="space-y-6">
+  <section class="layout-grid__primary">
     <DistributionChart bins={$simulation.result?.histogram ?? []} />
   </section>
 
-  <section class="rounded-[var(--radius-card)] border border-slate-200 bg-gradient-to-br from-white via-surface to-surface-muted/60 p-6 shadow-[var(--shadow-card)]">
-    <h2 class="text-lg font-semibold text-slate-900">Roadmap Highlights</h2>
-    <ul class="mt-4 space-y-3 text-sm text-slate-600">
-      <li class="flex items-start gap-2">
-        <span class="mt-1 h-1.5 w-1.5 rounded-full bg-primary" aria-hidden="true"></span>
-        Hook the deal form and list into reactive stores with validation + optimistic updates.
-      </li>
-      <li class="flex items-start gap-2">
-        <span class="mt-1 h-1.5 w-1.5 rounded-full bg-primary" aria-hidden="true"></span>
-        Invoke the simulation API from the UI, stream results into charts and stat panels.
-      </li>
-      <li class="flex items-start gap-2">
-        <span class="mt-1 h-1.5 w-1.5 rounded-full bg-primary" aria-hidden="true"></span>
-        Layer on scenario persistence, exports, dark mode, and polished interactions.
-      </li>
+  <section class="card card--muted">
+    <h2 class="card__title" style="letter-spacing: 0.24em;">Roadmap Highlights</h2>
+    <ul class="roadmap-list">
+      <li>Hook the deal form and list into reactive stores with validation + optimistic updates.</li>
+      <li>Invoke the simulation API from the UI, stream results into charts and stat panels.</li>
+      <li>Layer on scenario persistence, exports, dark mode, and polished interactions.</li>
     </ul>
   </section>
 </main>

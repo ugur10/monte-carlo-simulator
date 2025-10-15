@@ -132,18 +132,19 @@ $effect(() => {
 });
 </script>
 
-<section class="rounded-[var(--radius-card)] border border-slate-200 bg-white p-6 shadow-[var(--shadow-card)]">
-  <header class="mb-3 flex items-center justify-between">
-    <h2 class="text-sm font-semibold uppercase tracking-widest text-slate-500">Revenue Distribution</h2>
-    <span class="text-xs text-slate-500">{props.bins.length} bins</span>
+<section class="card">
+  <header class="card__header card__header--with-actions">
+    <div>
+      <p class="card__title">Revenue Distribution</p>
+      <p class="card__subtitle">Actual histogram output from the latest simulation.</p>
+    </div>
+    <span class="muted-text">{props.bins.length} bins</span>
   </header>
 
   {#if props.bins.length === 0}
-    <p class="text-sm text-slate-500">
-      Add deals and run a simulation to render the revenue distribution histogram.
-    </p>
+    <p class="card-message">Add deals and run a simulation to render the revenue distribution histogram.</p>
   {:else}
-    <div class="relative h-72 w-full">
+    <div class="chart-wrapper">
       <canvas bind:this={canvas} aria-label="Revenue distribution histogram"></canvas>
     </div>
   {/if}

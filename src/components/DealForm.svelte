@@ -74,105 +74,72 @@ function handleCancel() {
 }
 </script>
 
-<form
-  bind:this={form}
-  class="space-y-6"
-  id={props.formId}
-  onsubmit={handleSubmit}
->
-  <div class="rounded-xl border border-slate-200 bg-white p-4">
-    <header class="mb-3 flex items-center justify-between">
-      <h3 class="text-xs uppercase tracking-[0.28em] text-slate-500">Deal essentials</h3>
-      <span class="text-xs text-slate-400">{localDraft.name ? 'Ready to simulate' : 'Give it a name'}</span>
+<form bind:this={form} class="deal-form" id={props.formId} onsubmit={handleSubmit}>
+  <div class="deal-form__panel">
+    <header class="deal-form__panel-header">
+      <h3 class="deal-form__panel-title">Deal essentials</h3>
+      <span class="deal-form__status">{localDraft.name ? 'Ready to simulate' : 'Give it a name'}</span>
     </header>
-    <div class="grid gap-4 sm:grid-cols-2">
-      <label class="flex flex-col gap-2 text-sm">
-        <span class="font-medium text-slate-700">Deal name</span>
+    <div class="deal-form__grid deal-form__grid--two">
+      <div class="input-group">
+        <label for="deal-name">Deal name</label>
         <input
+          id="deal-name"
           name="name"
           type="text"
-          class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 shadow-sm transition focus:border-primary focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20"
+          class="form-control"
           bind:value={localDraft.name}
           oninput={(event) => update('name', event.currentTarget.value)}
           placeholder="Enterprise Expansion"
           required
         />
         {#if errors.name}
-          <p class="text-xs text-danger">{errors.name}</p>
+          <p class="form-error">{errors.name}</p>
         {/if}
-      </label>
+      </div>
 
-      <label class="flex flex-col gap-2 text-sm">
-        <span class="font-medium text-slate-700">Owner</span>
+      <div class="input-group">
+        <label for="deal-owner">Owner</label>
         <input
+          id="deal-owner"
           type="text"
-          class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 shadow-sm transition focus:border-primary focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20"
+          class="form-control"
           bind:value={localDraft.owner}
           oninput={(event) => update('owner', event.currentTarget.value)}
           placeholder="Optional – e.g. Account Executive"
         />
         {#if errors.owner}
-          <p class="text-xs text-danger">{errors.owner}</p>
+          <p class="form-error">{errors.owner}</p>
         {/if}
-      </label>
+      </div>
     </div>
   </div>
 
-  <div class="grid gap-4 sm:grid-cols-3">
-    <label class="flex flex-col gap-2 text-sm">
-      <span class="font-medium text-slate-700">Deal name</span>
+  <div class="deal-form__grid deal-form__grid--three">
+    <div class="input-group">
+      <label for="deal-amount">Amount (USD)</label>
       <input
-        name="name"
-        type="text"
-        class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 shadow-sm transition focus:border-primary focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20"
-        bind:value={localDraft.name}
-        oninput={(event) => update('name', event.currentTarget.value)}
-        placeholder="Enterprise Expansion"
-        required
-      />
-      {#if errors.name}
-        <p class="text-xs text-danger">{errors.name}</p>
-      {/if}
-    </label>
-
-    <label class="flex flex-col gap-2 text-sm">
-      <span class="font-medium text-slate-700">Owner</span>
-      <input
-        type="text"
-        class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 shadow-sm transition focus:border-primary focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20"
-        bind:value={localDraft.owner}
-        oninput={(event) => update('owner', event.currentTarget.value)}
-        placeholder="Optional – e.g. Account Executive"
-      />
-      {#if errors.owner}
-        <p class="text-xs text-danger">{errors.owner}</p>
-      {/if}
-    </label>
-  </div>
-
-  <div class="grid gap-4 sm:grid-cols-3">
-    <label class="flex flex-col gap-2 text-sm">
-      <span class="font-medium text-slate-700">Amount (USD)</span>
-      <input
+        id="deal-amount"
         type="number"
-        class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 shadow-sm transition focus:border-primary focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20"
+        class="form-control"
         min="0"
         step="1000"
         bind:value={localDraft.amount}
         oninput={(event) => update('amount', Number(event.currentTarget.value) || 0)}
         placeholder="250000"
         required
-     />
-     {#if errors.amount}
-       <p class="text-xs text-danger">{errors.amount}</p>
-     {/if}
-   </label>
+      />
+      {#if errors.amount}
+        <p class="form-error">{errors.amount}</p>
+      {/if}
+    </div>
 
-    <label class="flex flex-col gap-2 text-sm">
-      <span class="font-medium text-slate-700">Win probability (%)</span>
+    <div class="input-group">
+      <label for="deal-probability">Win probability (%)</label>
       <input
+        id="deal-probability"
         type="number"
-        class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 shadow-sm transition focus:border-primary focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20"
+        class="form-control"
         min="0"
         max="100"
         step="1"
@@ -182,75 +149,69 @@ function handleCancel() {
         required
       />
       {#if errors.winProbability}
-        <p class="text-xs text-danger">{errors.winProbability}</p>
+        <p class="form-error">{errors.winProbability}</p>
       {/if}
-    </label>
+    </div>
 
-    <label class="flex flex-col gap-2 text-sm">
-      <span class="font-medium text-slate-700">Expected close</span>
+    <div class="input-group">
+      <label for="deal-close">Expected close</label>
       <input
+        id="deal-close"
         type="date"
-        class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 shadow-sm transition focus:border-primary focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20"
+        class="form-control"
         bind:value={localDraft.expectedCloseDate}
         oninput={(event) => update('expectedCloseDate', event.currentTarget.value)}
         required
       />
       {#if errors.expectedCloseDate}
-        <p class="text-xs text-danger">{errors.expectedCloseDate}</p>
+        <p class="form-error">{errors.expectedCloseDate}</p>
       {/if}
-    </label>
+    </div>
   </div>
 
-  <div class="grid gap-4 sm:grid-cols-2">
-    <label class="flex flex-col gap-2 text-sm">
-      <span class="font-medium text-slate-700">Stage</span>
+  <div class="deal-form__grid deal-form__grid--two">
+    <div class="input-group">
+      <label for="deal-stage">Stage</label>
       <input
+        id="deal-stage"
         type="text"
-        class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 shadow-sm transition focus:border-primary focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20"
+        class="form-control"
         bind:value={localDraft.stage}
         oninput={(event) => update('stage', event.currentTarget.value)}
         placeholder="Negotiation"
       />
       {#if errors.stage}
-        <p class="text-xs text-danger">{errors.stage}</p>
+        <p class="form-error">{errors.stage}</p>
       {/if}
-    </label>
+    </div>
   </div>
 
-  <label class="flex flex-col gap-2 text-sm">
-    <span class="font-medium text-slate-700">Notes</span>
+  <div class="deal-form__notes">
+    <label for="deal-notes">Notes</label>
     <textarea
-      class="min-h-[120px] w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 shadow-sm transition focus:border-primary focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20"
+      id="deal-notes"
+      class="form-control"
       bind:value={localDraft.notes}
       oninput={(event) => update('notes', event.currentTarget.value)}
       placeholder="Context around the buyer committee, risk, or mitigation plans." 
     ></textarea>
     {#if errors.notes}
-      <p class="text-xs text-danger">{errors.notes}</p>
+      <p class="form-error">{errors.notes}</p>
     {/if}
-  </label>
+  </div>
 
-  <footer class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-    <p class="text-xs text-slate-500 sm:text-sm">
+  <footer class="deal-form__footer">
+    <p class="deal-form__hint">
       {#if typeof props.index === 'number'}
-        Updating deal #{props.index + 1}
+        Updating deal #{props.index + 1}.
       {:else}
         Fill every field before saving your deal.
       {/if}
     </p>
-    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-2">
-      <button
-        type="submit"
-        class="inline-flex w-full items-center justify-center rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary-strong focus:outline-none focus:ring-2 focus:ring-primary/30 sm:w-auto"
-      >
+    <div class="deal-form__footer-actions">
+      <button type="button" class="button button--ghost" onclick={handleCancel}>Cancel</button>
+      <button type="submit" class="button button--primary">
         {#if typeof props.index === 'number'}Update deal{:else}Save deal{/if}
-      </button>
-      <button
-        type="button"
-        class="inline-flex w-full items-center justify-center rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-primary/10 sm:w-auto"
-        onclick={handleCancel}
-      >
-        Cancel
       </button>
     </div>
   </footer>
