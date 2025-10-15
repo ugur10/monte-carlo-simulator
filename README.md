@@ -1,12 +1,14 @@
 # Monte Carlo Sales Pipeline Simulator
 
 ## Overview
-Monte Carlo Sales Pipeline Simulator forecasts revenue outcomes for B2B deal funnels. The project combines a deterministic, unit-tested simulation engine with a type-safe API surface and a Tailwind-driven SvelteKit shell that will evolve into a production-ready UI. The short-term objective is to build a thin vertical slice – from data model through API response – before layering on interactivity, persistence, and visualization.
+Monte Carlo Sales Pipeline Simulator forecasts revenue outcomes for B2B deal funnels. The project combines a deterministic, unit-tested simulation engine with a type-safe API surface and a handcrafted SvelteKit UI that will evolve into a production-ready application. The short-term objective is to build a thin vertical slice – from data model through API response – before layering on interactivity, persistence, and visualization.
+
+![Monte Carlo Sales Pipeline Simulator preview](static/app-preview.png)
 
 ## Current Capabilities (Phase 1–3 Complete)
 - **Tooling & DX**
   - SvelteKit 5 on Bun with strict TypeScript, Vitest, and Biome formatting/linting.
-  - Tailwind CSS v4 baseline with a modern, “startup-ready” landing placeholder.
+  - Custom, handcrafted CSS design system themed for a modern SaaS dashboard.
 - **Simulation Engine**
   - Pure TypeScript Monte Carlo engine (`src/lib/simulator.ts`) producing revenue samples, histograms, confidence intervals, target probabilities, and per-deal sensitivity metrics in <1 s for 10k iterations.
   - Deterministic seeded RNG utilities, percentile helpers, and config normalization with comprehensive unit tests.
@@ -18,7 +20,7 @@ Monte Carlo Sales Pipeline Simulator forecasts revenue outcomes for B2B deal fun
 ## Tech Stack
 - **Runtime & Framework**: Bun • SvelteKit 5
 - **Language & Types**: TypeScript (strict)
-- **Styling**: Tailwind CSS v4 (`@tailwindcss/vite`)
+- **Styling**: Handcrafted CSS (see `src/app.css`)
 - **Quality**: Biome (lint/format), Vitest + jsdom
 - **Validation**: Zod
 
